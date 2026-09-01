@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Asteroids Chromebook Version</title>
+<style>
+html,body{
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  background:black;
+}
+canvas{display:block;}
+</style>
+</head>
+<body tabindex="0">
+<canvas id="c"></canvas>
+
+
+<script>
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
+c.width = innerWidth;
+c.height = innerHeight;
+
+
+// focus canvas
+document.body.focus();
+
+
+let ship = { x:c.width/2, y:c.height/2, a:0, vx:0, vy:0 };
+let keys = {};
+let bullets = [];
+let asteroids = [];
+let canShoot = true;
+
+
+// spawn asteroids
+for(let i=0;i<8;i++){
+ asteroids.push({
+  x:Math.random()*c.width,
+  y:Math.random()*c.height,
+  vx:(Math.random()-0.5)*2,
+  vy:(Math.random()-0.5)*2,
+  r:30+Math.random()*20
+ });
+}
+
+
+// key handling
+window.addEventListener("keydown", e=>{
+ e.preventDefault();
+ keys[e.code]=true;
+});
+
+
+window.addEventListener("keyup", e=>{
+ e.preventDefault();
+ keys[e.code]=false;
+ if(e.code==="KeyZ") canShoot=true; // Z key to shoot
+});
+
+
+// shoot function
+function shoot(){
+ bullets.push({
+  x:ship.x,
+  y:ship.y,
+  vx:Math.cos(ship.a)*7,
+  vy:Math.sin(ship.a)*7
+ });
+}
+
+
+// game loop
+function loop(){
+ ctx.clearRect(0,0,c.width,c.height);
+
+
+ // controls
+ if(keys["ArrowLeft"]) ship.a -= 0.07;
+ if(keys["ArrowRight"]) ship.a += 0.07;
+ if(keys["ArrowUp"]){
+  ship.vx += Math.cos(ship.a)*0.1;
+  ship.vy += Math.sin(ship.a)*0.1;
+ }
+ if(keys["KeyZ"] && canShoot){
+  shoot();
+  canShoot=false;
+ }
+
+
+ // move ship
+ ship.x += ship.vx;
+ ship.y += ship.vy;
+ ship.x = (ship.x + c.width) % c.width;
+ ship.y = (ship.y + c.height) % c.height;
+
+
+ // draw ship
+ ctx.strokeStyle="white";
+ ctx.beginPath();
+ ctx.moveTo(ship.x+Math.cos(ship.a)*15,ship.y+Math.sin(ship.a)*15);
+ ctx.lineTo(ship.x+Math.cos(ship.a+2.5)*15,ship.y+Math.sin(ship.a+2.5)*15);
+ ctx.lineTo(ship.x+Math.cos(ship.a-2.5)*15,ship.y+Math.sin(ship.a-2.5)*15);
+ ctx.closePath();
+ ctx.stroke();
+
+
+ // draw bullets
+ bullets.forEach((b,i)=>{
+  b.x+=b.vx;
+  b.y+=b.vy;
+  ctx.fillRect(b.x,b.y,3,3);
+ });
+
+
+ // move & draw asteroids
+ asteroids.forEach(a=>{
+  a.x+=a.vx;
+  a.y+=a.vy;
+  a.x=(a.x+c.width)%c.width;
+  a.y=(a.y+c.height)%c.height;
+  ctx.beginPath();
+  ctx.arc(a.x,a.y,a.r,0,Math.PI*2);
+  ctx.stroke();
+ });
+
+
+ requestAnimationFrame(loop);
+}
+
+
+loop();
+</script>
+</body>
+</html>
